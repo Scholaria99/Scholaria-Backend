@@ -12,10 +12,11 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-  origin: '*', // atau ganti ke 'http://localhost:5500' jika pakai Live Server
+  origin: 'https://scholaria-app-mu.vercel.app', // izinkan hanya dari Vercel
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type']
 }));
+
 app.use(express.json());
 
 // Serve static frontend (HTML, CSS, JS)
