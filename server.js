@@ -295,10 +295,13 @@ app.get('/awal-kuis', (req, res) => {
 
 // Tambahkan fungsi ini
 function getHariHariIni() {
+  const offsetMs = 7 * 60 * 60 * 1000; // offset WIB (UTC+7)
+  const nowWIB = new Date(Date.now() + offsetMs);
   const hariArray = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-  const hariIndex = new Date().getDay();
+  const hariIndex = nowWIB.getDay();
   return hariArray[hariIndex];
 }
+
 
 app.get('/jadwal-hari-ini', (req, res) => {
   const { userId } = req.query;
