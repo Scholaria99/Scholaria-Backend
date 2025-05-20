@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-  origin: 'https://scholaria-app-mu.vercel.app/', // izinkan hanya dari Vercel
+  origin: 'https://scholaria-app-mu.vercel.app', // izinkan hanya dari Vercel
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type']
 }));
