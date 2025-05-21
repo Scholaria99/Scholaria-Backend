@@ -34,7 +34,7 @@ Format soal:
    D. pilihan D  
    Jawaban: [huruf pilihan yang benar]
 
-Jangan tampilkan penjelasan apapun seperti kalimat pembuka dan penutup yang anda berikan selain soal dan jawabannya.
+Jangan tampilkan penjelasan apapun seperti kalimat pembuka dan penutup yang anda berikan seperti "Here are the questions:", tampilkan soal dan jawabannya saja.
 `;
 
 
