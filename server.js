@@ -4,7 +4,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const path = require('path');
-const db = require('./db');
+const getDB = require('./db');
 const { generateSoalDariGroq, jawabPertanyaanGroq } = require('./service/groqService');
 
 const app = express();
@@ -29,6 +29,11 @@ app.get('/', (req, res) => {
   res.send('✅ Backend aktif dan berjalan!');
 });
 
+setInterval(() => {
+  const db = require('./db')();
+  db.query('SELECT 1');
+}, 5 * 60 * 1000); // setiap 5 menit
+
 
 //loginn
 // Login (sederhana, tanpa hashing)
@@ -42,6 +47,7 @@ app.post('/reset-password-request', (req, res) => {
   const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
 
   const query = 'UPDATE users SET reset_code = ?, reset_expires = DATE_ADD(NOW(), INTERVAL 15 MINUTE) WHERE email = ?';
+  const db = getDB();
   db.query(query, [resetCode, email], (err, result) => {
     if (err) return res.status(500).json({ error: 'DB error' });
     if (result.affectedRows === 0) return res.status(404).json({ error: 'Email tidak ditemukan' });
@@ -66,9 +72,10 @@ app.post('/reset-password', (req, res) => {
   const { email, code, newPassword } = req.body;
 
   const query = `SELECT * FROM users WHERE email = ? AND reset_code = ? AND reset_expires > NOW()`;
+  const db = getDB();
   db.query(query, [email, code], (err, results) => {
     if (err || results.length === 0) return res.status(400).json({ error: 'Kode salah atau kadaluarsa' });
-
+    const db = getDB();
     db.query(`UPDATE users SET password = ?, reset_code = NULL, reset_expires = NULL WHERE email = ?`,
       [newPassword, email], (err2) => {
         if (err2) return res.status(500).json({ error: 'Gagal update password' });
@@ -113,6 +120,7 @@ app.post('/login', (req, res) => {
   SELECT * FROM users 
   WHERE (username = ? OR email = ?) AND password = ?
 `;
+const db = getDB();
 db.query(query, [username, username, password], (err, results) => {
     if (err) {
   console.error("DB Error:", err);
@@ -141,6 +149,7 @@ app.post('/register', async (req, res) => {
   const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
   const query = 'INSERT INTO users (username, password, email, verification_code, awal_kuis) VALUES (?, ?, ?, ?, NOW())';
+  const db = getDB();
   db.query(query, [username, password, email, verificationCode], (err) => {
     if (err) {
       if (err.code === 'ER_DUP_ENTRY') {
@@ -166,10 +175,12 @@ app.post('/verify', (req, res) => {
   const { username, code } = req.body;
 
   const query = 'SELECT verification_code FROM users WHERE username = ?';
+  const db = getDB();
   db.query(query, [username], (err, results) => {
     if (err || results.length === 0) return res.status(404).json({ error: 'User tidak ditemukan' });
 
     if (results[0].verification_code === code) {
+      const db = getDB();
       db.query('UPDATE users SET verified = true WHERE username = ?', [username], (err2) => {
         if (err2) return res.status(500).json({ error: 'Gagal update status verifikasi' });
         res.json({ message: '✅ Verifikasi berhasil! Silakan login.' });
@@ -193,6 +204,7 @@ app.post('/input-jadwal', (req, res) => {
   }
 
   const query = 'INSERT INTO jadwal (user_id, hari, jam_mulai, jam_selesai, matkul) VALUES (?, ?, ?, ?, ?)';
+  const db = getDB();
   db.query(query, [userId, hari, jam_mulai, jam_selesai, matkul], (err, result) => {
     if (err) {
       console.error('DB Error:', err);
@@ -205,6 +217,7 @@ app.post('/input-jadwal', (req, res) => {
 // Update jadwal
 app.put('/update-jadwal', (req, res) => {
   const { id, hari, jam_mulai, jam_selesai, matkul } = req.body;
+  const db = getDB();
   db.query(
     'UPDATE jadwal SET hari = ?, jam_mulai = ?, jam_selesai = ?, matkul = ? WHERE id = ?',
     [hari, jam_mulai, jam_selesai, matkul, id],
@@ -218,6 +231,7 @@ app.put('/update-jadwal', (req, res) => {
 // Hapus jadwal
 app.delete('/hapus-jadwal/:id', (req, res) => {
   const { id } = req.params;
+  const db = getDB();
   db.query('DELETE FROM jadwal WHERE id = ?', [id], (err, result) => {
     if (err) {
       console.error("❌ Gagal hapus jadwal:", err);
@@ -271,7 +285,7 @@ app.get('/list-jadwal', (req, res) => {
   if (!userId) return res.status(400).json({ error: "userId wajib diisi." });
 
   const query = `SELECT * FROM jadwal WHERE user_id = ? ORDER BY FIELD(hari, "Senin", "Selasa", "Rabu", "Kamis", "Jumat"), jam_mulai`;
-
+  const db = getDB();
   db.query(query, [userId], (err, results) => {
     if (err) {
       console.error('DB Error:', err);
@@ -291,6 +305,7 @@ app.get('/awal-kuis', (req, res) => {
   if (!userId) return res.status(400).json({ error: 'userId wajib' });
 
   const query = 'SELECT awal_kuis FROM users WHERE id = ?';
+  const db = getDB();
   db.query(query, [userId], (err, results) => {
     if (err) return res.status(500).json({ error: 'Gagal ambil tanggal awal kuis' });
     if (results.length === 0) return res.status(404).json({ error: 'User tidak ditemukan' });
@@ -317,6 +332,7 @@ app.get('/jadwal-hari-ini', (req, res) => {
   const hariIni = getHariHariIni(); // fungsi konversi new Date() ke nama hari
 
   const query = 'SELECT * FROM jadwal WHERE user_id = ? AND hari = ?';
+  const db = getDB();
   db.query(query, [userId, hariIni], (err, result) => {
     if (err) return res.status(500).json({ error: 'Gagal ambil jadwal' });
     res.json(result);
@@ -337,7 +353,7 @@ const query = `
   (user_id, matkul, topik, waktu, nilai, saran, minggu_ke, bulan_ke)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 `;
-
+const db = getDB();
 db.query(query, [userId, matkul, topik, waktu, nilai, saran || null, minggu_ke, bulan_ke], (err) => {
     if (err) {
       console.error('DB Error:', err);
@@ -396,6 +412,7 @@ app.get('/list-matkul', (req, res) => {
   if (!userId) return res.status(400).json({ error: 'userId wajib diisi.' });
 
   const query = 'SELECT DISTINCT matkul FROM nilai_quiz WHERE user_id = ?';
+  const db = getDB();
   db.query(query, [userId], (err, results) => {
     if (err) {
       console.error('DB Error:', err);
@@ -418,7 +435,7 @@ GROUP BY minggu_ke
 ORDER BY minggu_ke
 
   `;
-
+  const db = getDB();
   db.query(query, [matkul, userId], (err, results) => {
     if (err) {
       console.error('DB Error:', err);
@@ -440,7 +457,7 @@ app.get('/saran-terakhir', (req, res) => {
     ORDER BY waktu DESC
     LIMIT 1
   `;
-
+  const db = getDB();
   db.query(query, [matkul, userId], (err, results) => {
     if (err) {
       console.error('DB Error:', err);
@@ -459,6 +476,7 @@ app.get('/statistik-mingguan', (req, res) => {
   const getBulan = `
     SELECT MAX(bulan_ke) AS latest_bulan FROM nilai_quiz WHERE user_id = ?
   `;
+  const db = getDB();
   db.query(getBulan, [userId], (err, bulanRes) => {
     if (err) return res.status(500).json({ error: 'Gagal ambil bulan ke.' });
     const bulanKe = bulanRes[0]?.latest_bulan || 1;
@@ -469,6 +487,7 @@ app.get('/statistik-mingguan', (req, res) => {
       WHERE user_id = ? AND bulan_ke = ?
       ORDER BY minggu_ke, waktu
     `;
+    const db = getDB();
     db.query(query, [userId, bulanKe], (err, results) => {
       if (err) return res.status(500).json({ error: 'Gagal ambil data statistik.' });
       res.json(results);
@@ -490,7 +509,7 @@ app.get('/saran-minggu', (req, res) => {
     ORDER BY waktu DESC
     LIMIT 1
   `;
-
+  const db = getDB();
   db.query(query, [userId, mingguKe], (err, results) => {
     if (err) {
       console.error('DB Error:', err);
@@ -509,6 +528,7 @@ app.delete('/hapus-nilai', (req, res) => {
   }
 
   const sql = 'DELETE FROM nilai_quiz WHERE user_id = ? AND matkul = ? AND minggu_ke = ?';
+  const db = getDB();
   db.query(sql, [userId, matkul, minggu_ke], (err, result) => {
     if (err) return res.status(500).json({ error: 'Gagal menghapus nilai' });
     if (result.affectedRows === 0) {
@@ -529,7 +549,7 @@ app.get('/history-bulanan', (req, res) => {
     WHERE user_id = ?
     ORDER BY bulan_ke, minggu_ke, waktu
   `;
-
+  const db = getDB();
   db.query(query, [userId], (err, results) => {
     if (err) return res.status(500).json({ error: 'Gagal ambil histori bulanan.' });
     res.json(results);
@@ -543,6 +563,7 @@ app.get('/bulan-terbaru', (req, res) => {
   if (!userId) return res.status(400).json({ error: 'userId wajib diisi' });
 
   const query = 'SELECT MAX(bulan_ke) AS bulan_terbaru FROM nilai_quiz WHERE user_id = ?';
+  const db = getDB();
   db.query(query, [userId], (err, result) => {
     if (err) return res.status(500).json({ error: 'Gagal ambil data bulan terbaru' });
     res.json({ bulan_terbaru: result[0].bulan_terbaru || 1 });
