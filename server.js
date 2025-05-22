@@ -50,7 +50,7 @@ app.post('/reset-password-request', (req, res) => {
     const mailOptions = {
       from: 'scholaria51@gmail.com',
       to: email,
-      subject: 'Kode Reset Password LifePlan',
+      subject: 'Kode Reset Password Scholaria',
       text: `Kode verifikasi reset password kamu adalah: ${resetCode}`
     };
 
