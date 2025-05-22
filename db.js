@@ -1,31 +1,34 @@
 // db.js
+require('dotenv').config(); // Pastikan ini di atas
+
 const mysql = require('mysql2');
+
+const db_config = {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT
+};
 
 let connection;
 
 function handleDisconnect() {
-  connection = mysql.createConnection({
-    host: 'sql12.freesqldatabase.com',
-    user: 'sql12780107',
-    password: 'e2vQdPNbdq',
-    database: 'sql12780107',
-    port: 3306
-  });
+  connection = mysql.createConnection(db_config);
 
   connection.connect((err) => {
     if (err) {
-      console.error('❌ Error connecting to MySQL:', err.message);
-      setTimeout(handleDisconnect, 2000); // coba lagi setelah 2 detik
+      console.error('❌ Gagal konek DB:', err.message);
+      setTimeout(handleDisconnect, 2000);
     } else {
-      console.log('✅ Terkoneksi ke database MySQL (hosting)!');
+      console.log('✅ Terhubung ke DB MySQL (env config)');
     }
   });
 
   connection.on('error', (err) => {
-    console.error('⚠️ MySQL error:', err.message);
+    console.error('⚠️ Error koneksi DB:', err.message);
     if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-      console.log('🔄 Reconnecting to MySQL...');
-      handleDisconnect(); // reconnect
+      handleDisconnect();
     } else {
       throw err;
     }
