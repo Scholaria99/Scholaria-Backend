@@ -114,7 +114,13 @@ app.post('/login', (req, res) => {
   WHERE (username = ? OR email = ?) AND password = ?
 `;
 db.query(query, [username, username, password], (err, results) => {
-    if (err || results.length === 0) return res.status(401).json({ error: 'Login gagal' });
+    if (err) {
+  console.error("DB Error:", err);
+  return res.status(500).json({ error: 'Server error' });
+}
+if (results.length === 0) {
+  return res.status(401).json({ error: 'Login gagal: username/password salah' });
+}
 
     const user = results[0];
     if (!user.verified) {
@@ -144,7 +150,8 @@ app.post('/register', async (req, res) => {
         return res.status(400).json({ error: errorMessage });
       }
       
-      return res.status(500).json({ error: 'Gagal daftar' });
+      console.error('Register error:', err);
+return res.status(500).json({ error: 'Gagal daftar', detail: err.message });
     }
 
     // Kirim email setelah sukses insert
