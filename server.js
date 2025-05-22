@@ -127,7 +127,7 @@ db.query(query, [username, username, password], (err, results) => {
   return res.status(500).json({ error: 'Server error' });
 }
 if (results.length === 0) {
-  return res.status(401).json({ error: 'Login gagal: username/password salah' });
+  return res.status(401).json({ error: 'username/password salah' });
 }
 
     const user = results[0];
