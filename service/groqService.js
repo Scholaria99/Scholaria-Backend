@@ -3,8 +3,6 @@ const axios = require('axios');
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
-console.log('Loaded GROQ_API_KEY:', GROQ_API_KEY);
-
 async function generateSoalDariGroq(materi) {
   try {
 const prompt = `
