@@ -40,7 +40,7 @@ Jangan tampilkan penjelasan apapun seperti kalimat pembuka dan penutup yang anda
 
 
     const response = await axios.post(GROQ_API_URL, {
-      model: "llama3-8b-8192",
+      model: "llama3-70b-8192",
       messages: [
         {
           role: "system",
@@ -140,9 +140,10 @@ function wrapIfMath(text) {
     return soalList;
 
   } catch (error) {
-    console.error('Error generateSoal:', error.message);
-    throw new Error("Gagal membuat soal.");
-  }
+  console.error('Error generateSoal:', error.response?.status, error.response?.data || error.message);
+  throw new Error("Gagal membuat soal.");
+}
+
 }
 
 
