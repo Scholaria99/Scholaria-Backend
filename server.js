@@ -570,21 +570,7 @@ app.get('/bulan-terbaru', (req, res) => {
   });
 });
 
-// Hapus akun
-// --- Hapus akun ---
-app.delete('/hapus-akun/:userId', (req, res) => {
-  const { userId } = req.params;
 
-  const db = getDB();
-  db.query('DELETE FROM users WHERE id = ?', [userId], (err, result) => {
-    if (err) {
-      console.error('❌ Gagal hapus akun:', err);
-      return res.status(500).json({ error: 'Gagal menghapus akun' });
-    }
-
-    res.json({ message: '✅ Akun berhasil dihapus' });
-  });
-});
 
 
 
