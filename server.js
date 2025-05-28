@@ -571,6 +571,22 @@ app.get('/bulan-terbaru', (req, res) => {
 });
 
 
+// Hapus akun
+app.delete('/hapus-akun', (req, res) => {
+  const { username } = req.query;
+  if (!username) return res.status(400).json({ error: 'Username wajib diisi.' });
+
+  const db = getDB();
+  db.query('DELETE FROM users WHERE username = ?', [username], (err, result) => {
+    if (err) return res.status(500).json({ error: 'Gagal menghapus akun.' });
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Akun tidak ditemukan.' });
+    }
+
+    res.json({ message: '✅ Akun berhasil dihapus.' });
+  });
+});
 
 
 
