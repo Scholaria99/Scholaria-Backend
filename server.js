@@ -552,6 +552,7 @@ app.get('/history-bulanan', (req, res) => {
 
 // Hapus akun
 app.delete('/hapus-akun', (req, res) => {
+  console.log(">> HAPUS AKUN DIPANGGIL:", req.query.username);
   const { username } = req.query;
   if (!username) return res.status(400).json({ error: 'Username wajib diisi.' });
 
