@@ -19,8 +19,6 @@ app.use(cors({
 
 app.use(express.json());
 
-// Serve static frontend (HTML, CSS, JS)
-app.use(express.static(path.join(__dirname, '../lifeplan-main/Pages')));
 
 // ========= ROUTES =========
 
@@ -275,10 +273,6 @@ app.post('/ask-groq', async (req, res) => {
 // Debug API Key
 console.log('GROQ API KEY:', process.env.GROQ_API_KEY ? '✅ Terisi' : '❌ Tidak terisi');
 
-// Jalankan server (hindari ganda)
-app.listen(PORT, () => {
-  console.log(`🚀 Server berjalan di http://localhost:${PORT}`);
-});
 
 app.get('/list-jadwal', (req, res) => {
   const { userId } = req.query;
@@ -556,21 +550,6 @@ app.get('/history-bulanan', (req, res) => {
   });
 });
 
-
-
-app.get('/bulan-terbaru', (req, res) => {
-  const { userId } = req.query;
-  if (!userId) return res.status(400).json({ error: 'userId wajib diisi' });
-
-  const query = 'SELECT MAX(bulan_ke) AS bulan_terbaru FROM nilai_quiz WHERE user_id = ?';
-  const db = getDB();
-  db.query(query, [userId], (err, result) => {
-    if (err) return res.status(500).json({ error: 'Gagal ambil data bulan terbaru' });
-    res.json({ bulan_terbaru: result[0].bulan_terbaru || 1 });
-  });
-});
-
-
 // Hapus akun
 app.delete('/hapus-akun', (req, res) => {
   const { username } = req.query;
@@ -588,5 +567,27 @@ app.delete('/hapus-akun', (req, res) => {
   });
 });
 
+app.get('/bulan-terbaru', (req, res) => {
+  const { userId } = req.query;
+  if (!userId) return res.status(400).json({ error: 'userId wajib diisi' });
+
+  const query = 'SELECT MAX(bulan_ke) AS bulan_terbaru FROM nilai_quiz WHERE user_id = ?';
+  const db = getDB();
+  db.query(query, [userId], (err, result) => {
+    if (err) return res.status(500).json({ error: 'Gagal ambil data bulan terbaru' });
+    res.json({ bulan_terbaru: result[0].bulan_terbaru || 1 });
+  });
+});
+
+
+
+// Serve static frontend (HTML, CSS, JS)
+app.use(express.static(path.join(__dirname, '../lifeplan-main/Pages')));
+
+
+// Jalankan server (hindari ganda)
+app.listen(PORT, () => {
+  console.log(`🚀 Server berjalan di http://localhost:${PORT}`);
+});
 
 
